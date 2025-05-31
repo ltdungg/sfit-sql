@@ -22,6 +22,14 @@ SELECT * FROM products;
 
 -- Lấy danh sách tên và giá bán của sản phẩm
 SELECT product_name, sale_price FROM products;
+
+-- Lấy tên sản phẩm, giá bán và giá sau khi giảm 10%
+SELECT 
+    product_name, 
+    sale_price, 
+    sale_price * 0.9 AS discounted_price
+FROM 
+    products;
 ```
 
 2. WHERE để lọc dữ liệu:
@@ -114,3 +122,6 @@ SELECT * FROM customers WHERE last_name LIKE '%son';
 -- Lấy các sản phẩm có tên chứa từ 'Cake'
 SELECT * FROM products WHERE product_name LIKE '%Cake%';
 ```
+
+## Bài tập 
+Link bài tập: [Bài tập Buổi 1](https://forms.gle/9JwXXDwZwhWeggxo9)
