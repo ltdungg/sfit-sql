@@ -1,20 +1,20 @@
-# BUỔI 1 - Phần cơ bản
+# BUỔI 1 - GIỚI THIỆU VỀ SQL VÀ CÁC CÂU LỆNH CƠ BẢN
 
-## Cài đặt môi trường PostgreSQL
+## CÀI ĐẶT MÔI TRƯỜNG PostgreSQL
 
 Cài đặt PostgreSQL trên máy tính của bạn. 
 - Bạn có thể tải xuống từ trang chính thức của PostgreSQL: [PostgreSQL Downloads](https://www.postgresql.org/download/).
 - Làm theo hướng dẫn cài đặt cho hệ điều hành của bạn (Windows, macOS, Linux).
 - Trong quá trình cài đặt, hãy nhớ ghi lại tên người dùng và mật khẩu bạn đã tạo cho tài khoản quản trị viên (thường là `postgres`).
 
-## Setup dữ liệu mẫu cho buổi học
+## SETUP DỮ LIỆU MẪU CHO BUỔI HỌC
 - Dữ liệu mẫu sẽ được sử dụng trong buổi học này là một cơ sở dữ liệu về cửa hàng bánh ngọt (bakery). Có các bảng như sau:
 ![image](../static/images/bakery-db.png)
 - Mở PGAdmin, trong giao diện chính, tạo một cơ sở dữ liệu mới với tên `bakery`.
 - Chọn cơ sở dữ liệu `bakery` vừa tạo, sau đó mở tab "Query Tool".
 - Sao chép và dán đoạn mã SQL của file `bakery-db.sql` vào cửa sổ truy vấn. Link file: [bakery-db.sql](./bakery-db.sql)
 
-## Script thực hành
+## SCRIPT THỰC HÀNH
 1. SELECT ... FROM cơ bản:
 ```sql
 -- Lấy tất cả các sản phẩm
@@ -67,27 +67,6 @@ SELECT *
 FROM customers
 WHERE state = 'TX' OR state = 'PA';
 ```
-- Sử dụng ALL, ANY, SOME
-```sql
--- Sản phẩm có giá cao hơn TẤT CẢ sản phẩm trong danh mục 'Bánh ngọt' (giả định)
-SELECT *
-FROM products
-WHERE sale_price > ALL (
-  SELECT sale_price 
-  FROM products 
-  WHERE product_name LIKE '%Cake%'
-);
-
--- Đơn hàng có tổng tiền bằng BẤT KỲ giá trị nào trong danh sách (10, 20, 30)
-SELECT *
-FROM customer_orders
-WHERE order_total = ANY(ARRAY[10, 20, 30]);
-
--- Sản phẩm có số lượng tồn kho lớn hơn MỘT VÀI giá trị trong danh sách (50, 100, 150)
-SELECT *
-FROM products
-WHERE units_in_stock > SOME(ARRAY[50, 100, 150]);
-```
 - Sử dụng NOT
 ```sql
 -- Khách hàng KHÔNG đến từ Texas (TX) hoặc California (CA)
@@ -99,15 +78,6 @@ WHERE state NOT IN ('TX', 'CA');
 SELECT *
 FROM products
 WHERE product_name NOT LIKE '%Cookie%';
-
--- Đơn hàng KHÔNG tồn tại trong bản đánh giá (customer_orders_review)
-SELECT *
-FROM customer_orders co
-WHERE NOT EXISTS (
-  SELECT 1
-  FROM customer_orders_review cor
-  WHERE co.order_id = cor.order_id
-);
 
 ```
 
@@ -123,5 +93,5 @@ SELECT * FROM customers WHERE last_name LIKE '%son';
 SELECT * FROM products WHERE product_name LIKE '%Cake%';
 ```
 
-## Bài tập 
+## BÀI TẬP
 Link bài tập: [Bài tập Buổi 1](https://forms.gle/9JwXXDwZwhWeggxo9)
