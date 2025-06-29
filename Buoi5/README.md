@@ -105,7 +105,7 @@ LIMIT 5;
    - Materialized view là một đối tượng trong PostgreSQL lưu trữ kết quả của một truy vấn SQL dưới dạng vật lý trên đĩa, giống như một bảng tạm thời được cập nhật định kỳ
    - Khác với view thường (standard view), materialized view không truy vấn dữ liệu gốc mỗi lần bạn gọi, mà trả về dữ liệu đã được "cache" sẵn từ lần cập nhật gần nhất.
    - Để cập nhật dữ liệu mới nhất, bạn phải dùng lệnh REFRESH MATERIALIZED VIEW.
-    - **Khi nào sử dụng**:
+   - **Khi nào sử dụng**:
         - Khi truy vấn tổng hợp phức tạp, tốn nhiều tài nguyên, nhưng dữ liệu không cần cập nhật liên tục (ví dụ: báo cáo doanh số, dashboard, phân tích dữ liệu lớn).
         - Khi bạn cần tăng tốc độ truy vấn cho các báo cáo, BI, hoặc hệ thống đọc nhiều, ghi ít
         - Khi dữ liệu nguồn thay đổi không quá thường xuyên, hoặc bạn chấp nhận độ trễ nhỏ giữa dữ liệu gốc và dữ liệu báo cáo.
