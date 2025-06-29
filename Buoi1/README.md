@@ -41,19 +41,7 @@ SELECT * FROM products WHERE units_in_stock > 50;
 SELECT * FROM customers WHERE city = 'Scranton';
 ```
 
-3. SELECT với IN, BETWEEN
-```sql
--- Lấy các sản phẩm có mã là 1001, 1003 hoặc 1005
-SELECT * FROM products WHERE product_id IN (1001, 1003, 1005);
-
--- Lấy các đơn hàng có tổng tiền từ 10 đến 50
-SELECT * FROM customer_orders WHERE order_total BETWEEN 10 AND 50;
-
--- Lấy các nhân viên thuộc phòng 'Bakery' hoặc 'Marketing'
-SELECT * FROM employees WHERE department IN ('Bakery', 'Marketing');
-```
-
-4. SELECT với các toán tử logic
+3. SELECT với các toán tử logic
 - Sử dụng AND, OR
 ```sql
 -- Sản phẩm có giá từ $1 đến $3 VÀ còn hơn 100 sản phẩm trong kho
@@ -74,14 +62,51 @@ SELECT *
 FROM customers
 WHERE state NOT IN ('TX', 'CA');
 
--- Sản phẩm KHÔNG có từ 'Cookie' trong tên
-SELECT *
-FROM products
-WHERE product_name NOT LIKE '%Cookie%';
+```
 
+4. SELECT với IN, BETWEEN
+- Toán tử IN được dùng để kiểm tra xem giá trị của một cột có nằm trong một danh sách các giá trị được chỉ định hay không. Đây là cách viết tắt hiệu quả cho nhiều điều kiện OR
+- 
+```sql
+-- Lấy các sản phẩm có mã là 1001, 1003 hoặc 1005
+SELECT * FROM products WHERE product_id IN (1001, 1003, 1005);
+
+-- Lấy các đơn hàng có tổng tiền từ 10 đến 50
+SELECT * FROM customer_orders WHERE order_total BETWEEN 10 AND 50;
+
+-- Lấy các nhân viên thuộc phòng 'Bakery' hoặc 'Marketing'
+SELECT * FROM employees WHERE department IN ('Bakery', 'Marketing');
+```
+
+- Toán tử BETWEEN dùng để chọn các giá trị trong một khoảng nhất định. Các giá trị này có thể là số, văn bản hoặc ngày tháng. Nó bao gồm cả giá trị bắt đầu và kết thúc của khoảng.
+```sql
+-- Lấy các đơn hàng có tổng tiền từ 10 đến 50
+SELECT * FROM customer_orders WHERE order_total BETWEEN 10 AND 50;
+
+-- Để lấy tất cả các đơn hàng được đặt trong quý đầu tiên của năm 2020:
+SELECT
+    order_id,
+    customer_id,
+    order_date,
+    order_total
+FROM
+    customer_orders
+WHERE
+    order_date BETWEEN '2020-01-01' AND '2020-03-31';
 ```
 
 5. SELECT với LIKE
+- Trong SQL, LIKE là một toán tử được sử dụng trong mệnh đề WHERE để tìm kiếm một mẫu (pattern) cụ thể trong một cột dữ liệu văn bản. Nó rất hữu ích khi bạn không biết chính xác chuỗi ký tự cần tìm.
+- Toán tử LIKE sử dụng các ký tự đại diện
+- Ký tự đại diện:
+  - `%`: đại diện cho bất kỳ chuỗi ký tự nào (bao gồm cả chuỗi rỗng).
+  - `_`: đại diện cho một ký tự đơn lẻ.
+- Ví dụ:
+  - `LIKE 'abc%'`: tìm kiếm các chuỗi bắt đầu bằng "abc".
+  - `LIKE '%xyz'`: tìm kiếm các chuỗi kết thúc bằng "xyz".
+  - `LIKE '%abc%'`: tìm kiếm các chuỗi chứa "abc" ở bất kỳ vị trí nào.
+  - `LIKE 'a_c'`: tìm kiếm các chuỗi có "a" ở đầu, "c" ở cuối và một ký tự bất kỳ ở giữa.
+  
 ```sql
 -- Lấy các sản phẩm có tên bắt đầu bằng 'Ch'
 SELECT * FROM products WHERE product_name LIKE 'Ch%';
@@ -91,6 +116,12 @@ SELECT * FROM customers WHERE last_name LIKE '%son';
 
 -- Lấy các sản phẩm có tên chứa từ 'Cake'
 SELECT * FROM products WHERE product_name LIKE '%Cake%';
+
+-- Sản phẩm KHÔNG có từ 'Cookie' trong tên
+SELECT *
+FROM products
+WHERE product_name NOT LIKE '%Cookie%';
+
 ```
 
 ## BÀI TẬP

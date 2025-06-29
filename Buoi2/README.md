@@ -1,295 +1,211 @@
-# BUỔI 2 - SQL 
+# BUỔI 2 - SQL
 
-## TỔ CHỨC KẾT QUẢ TRUY VẤN
-1. Sắp xếp kết quả với ORDER BY
-- Sắp xếp theo một hoặc nhiều cột
-- Sắp xếp theo thứ tự tăng dần (ASC) hoặc giảm dần (DESC)
+# Giới thiệu về GROUP BY
+**GROUP BY là gì?**
+- GROUP BY là một mệnh đề trong SQL dùng để nhóm các dòng dữ liệu có giá trị giống nhau ở một hoặc nhiều cột lại với nhau, thường được sử dụng cùng các hàm tổng hợp như COUNT, SUM, AVG, MIN, MAX để tạo ra các báo cáo, thống kê tổng hợp theo từng nhóm.
 
-- ODER BY 101
-``` sql
-SELECT * FROM customers
-ORDER BY first_name;
+**Cách hoạt động của GROUP BY**
 
--- ORDER BY theo thứ tự của cột
-SELECT * FROM customers
-ORDER BY 2 ASC, 3 DESC;
-```
+- **Cơ bản:**
 
-- ORDER BY theo câu
+GROUP BY sẽ gom các dòng có cùng giá trị ở cột chỉ định thành một nhóm. Sau đó, bạn có thể áp dụng các hàm tổng hợp để tính toán trên từng nhóm này, ví dụ: tổng số lượng sản phẩm bán ra theo từng loại bánh.
+
+- **Cú pháp chuẩn:**
+
 ```sql
--- 1. Lấy danh sách sản phẩm, sắp xếp theo giá bán tăng dần
-SELECT product_id, product_name, sale_price
+SELECT column1, aggregate_function(column2)
+FROM table_name
+GROUP BY column1;
+```
+Trong đó, column1 là cột dùng để nhóm dữ liệu, aggregate_function là hàm tổng hợp được áp dụng lên cột column2.
+Trong đó, aggregate_function là các hàm tổng hợp như COUNT, SUM, AVG, MIN, MAX.
+
+## Ví dụ sử dụng GROUP BY
+
+```sql
+-- Đếm số lượng sản phẩm theo từng mức giá:
+SELECT sale_price, COUNT(*) AS product_count
 FROM products
-ORDER BY sale_price ASC;
+GROUP BY sale_price;
 
--- 2. Lấy danh sách khách hàng, sắp xếp theo số tiền đã chi tiêu giảm dần
-SELECT customer_id, first_name, last_name, total_money_spent
-FROM customers
-ORDER BY total_money_spent DESC;
 
--- 3. Lấy danh sách đơn hàng của khách hàng, sắp xếp theo ngày đặt hàng mới nhất trước
-SELECT order_id, customer_id, order_date, order_total
-FROM customer_orders
-ORDER BY order_date DESC;
+-- Tổng số lượng từng sản phẩm đã được đặt:
+SELECT product_id, SUM(quantity) AS total_ordered
+FROM ordered_items
+GROUP BY product_id;
 
--- 4. Lấy danh sách nhân viên, sắp xếp theo phòng ban (department) tăng dần và lương giảm dần trong từng phòng ban
-SELECT employee_id, first_name, last_name, department, salary
+-- Đếm số lượng nhân viên theo phòng ban:
+SELECT department, COUNT(*) AS num_employees
 FROM employees
-ORDER BY department ASC, salary DESC;
+GROUP BY department;
+
+
+-- Group By nhiều cột:
+SELECT department, title, AVG(salary)
+FROM employees
+GROUP BY department, title;
 ```
 
-2. Giới hạn kết quả với LIMIT
-- LIMIT 101
+## Kết hợp GROUP BY
+### Lọc kết quả nhóm với HAVING
+- **HAVING** là mệnh đề dùng để lọc các nhóm dữ liệu sau khi đã áp dụng GROUP BY. Nó cho phép bạn đặt điều kiện trên kết quả của các hàm tổng hợp.
+
 ```sql
--- 1. Lấy 5 sản phẩm đầu tiên trong bảng products
-SELECT * FROM products
-LIMIT 5;
-
--- 2. Lấy 3 khách hàng đầu tiên trong bảng customers
-SELECT * FROM customers
-LIMIT 3;
-
--- 3. Lấy 10 đơn hàng mới nhất (giả sử order_id tăng dần theo thời gian)
-SELECT * FROM customer_orders
-ORDER BY order_id DESC
-LIMIT 10;
-
--- 4. Lấy 1 nhân viên có mức lương cao nhất
-SELECT * FROM employees
-ORDER BY salary DESC
-LIMIT 1;
+-- Lấy danh sách sản phẩm có tổng số lượng đặt hàng lớn hơn 100:
+SELECT product_id, SUM(quantity) AS total_quantity
+FROM ordered_items
+GROUP BY product_id
+HAVING SUM(quantity) > 100;
 ```
 
-- Giới hạn kết quả với OFFSET
-  - OFFSET chỉ định số lượng hàng sẽ bỏ qua từ đầu tập kết quả trước khi bắt đầu đếm.
+# GIỚI THIỆU VỀ JOIN
+1. Khái niệm tổng quan về JOIN
+- **JOIN** là lệnh dùng để kết hợp dữ liệu từ 2 hay nhiều bảng dựa trên mối quan hệ giữa các cột chung (thường là khóa chính và khóa ngoại).
+
+- Mục đích: Giúp bạn truy xuất dữ liệu liên quan từ nhiều bảng, tạo ra báo cáo tổng hợp, phân tích đa chiều.
+
+### Bảng tổng hợp các loại JOIN trong SQL
+
+| Loại JOIN        | Ý nghĩa                                                                 | Kết quả trả về                                                                                     | Ví dụ cơ bản                                                                                   |
+|------------------|------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| INNER JOIN       | Chỉ lấy các dòng có giá trị chung ở cả hai bảng                         | Chỉ dữ liệu khớp ở cả hai bảng                                                                     | `SELECT ... FROM A INNER JOIN B ON A.key = B.key;`                                            |
+| LEFT JOIN        | Lấy tất cả dòng ở bảng bên trái, nếu không khớp thì cột bên phải là NULL| Tất cả dòng bảng trái, bảng phải có thể NULL                                                       | `SELECT ... FROM A LEFT JOIN B ON A.key = B.key;`                                             |
+| RIGHT JOIN       | Lấy tất cả dòng ở bảng bên phải, nếu không khớp thì cột bên trái là NULL| Tất cả dòng bảng phải, bảng trái có thể NULL                                                       | `SELECT ... FROM A RIGHT JOIN B ON A.key = B.key;`                                            |
+| FULL OUTER JOIN  | Lấy tất cả dòng ở cả hai bảng, nếu không khớp thì giá trị là NULL       | Tất cả dòng của cả hai bảng, chỗ không khớp là NULL                                                | `SELECT ... FROM A FULL OUTER JOIN B ON A.key = B.key;`                                       |
+| CROSS JOIN       | Kết hợp tất cả các dòng của hai bảng (tích Descartes)                   | Số dòng = dòng bảng 1 × dòng bảng 2                                                                | `SELECT ... FROM A CROSS JOIN B;`                                                             |
+| SELF JOIN        | Kết nối một bảng với chính nó                                           | Kết quả như JOIN hai bảng, nhưng thực hiện trên cùng một bảng                                      | `SELECT ... FROM A a1 LEFT JOIN A a2 ON a1.manager_id = a2.employee_id;`                      |
+
+### Ví dụ minh họa JOIN
 ```sql
--- 1. Lấy 5 sản phẩm, bắt đầu từ sản phẩm thứ 6 (bỏ qua 5 sản phẩm đầu tiên)
-SELECT * FROM products
-ORDER BY product_id
-LIMIT 5 OFFSET 5;
+-- INNER JOIN: Lấy danh sách các đơn hàng (ordered_items) kèm tên sản phẩm (products):
+SELECT oi.order_id, oi.product_id, p.product_name, oi.quantity
+FROM ordered_items oi
+INNER JOIN products p ON oi.product_id = p.product_id;
 
--- 2. Lấy 3 khách hàng tiếp theo, bắt đầu từ khách hàng thứ 4 (bỏ qua 3 khách hàng đầu tiên)
-SELECT * FROM customers
-ORDER BY customer_id
-LIMIT 3 OFFSET 3;
+-- LEFT JOIN: Lấy tất cả đơn hàng và tên sản phẩm (kể cả trường hợp sản phẩm đã bị xóa khỏi bảng products):
+SELECT oi.order_id, oi.product_id, p.product_name, oi.quantity
+FROM ordered_items oi
+LEFT JOIN products p ON oi.product_id = p.product_id;
 
--- 3. Lấy 10 đơn hàng, bắt đầu từ đơn hàng thứ 21 (phục vụ phân trang, mỗi trang 10 đơn hàng)
-SELECT * FROM customer_orders
-ORDER BY order_id
-LIMIT 10 OFFSET 20;
+-- RIGHT JOIN: Lấy tất cả sản phẩm, kèm số lượng đã đặt (nếu có):
+SELECT p.product_id, p.product_name, oi.quantity
+FROM products p
+RIGHT JOIN ordered_items oi ON oi.product_id = p.product_id;
+
+-- FULL JOIN: Lấy tất cả sản phẩm và tất cả đơn hàng, ghép theo product_id
+SELECT p.product_id, p.product_name, oi.order_id, oi.quantity
+FROM products p
+FULL JOIN ordered_items oi ON oi.product_id = p.product_id;
+
+-- CROSS JOIN: Tạo tổ hợp tất cả sản phẩm với tất cả nhà cung cấp
+SELECT p.product_name, s.name AS supplier_name
+FROM products p
+CROSS JOIN suppliers s;
+
+-- SELF JOIN: Liệt kê mọi cặp nhân viên làm cùng một phòng ban (department), giúp bạn biết ai là đồng nghiệp trực tiếp của ai trong từng phòng
+
+SELECT
+  e1.first_name || ' ' || e1.last_name AS employee1,
+  e2.first_name || ' ' || e2.last_name AS employee2,
+  e1.department
+FROM employees e1
+INNER JOIN employees e2
+  ON e1.employee_id <> e2.employee_id
+  AND e1.department = e2.department
+ORDER BY e1.department, employee1, employee2;
+
+-- NATURAL JOIN: Tự động kết nối các cột có cùng tên giữa hai bảng 
+-- Không cần chỉ định điều kiện kết nối, nhưng chỉ sử dụng khi chắc chắn các cột có cùng tên và kiểu dữ liệu
+-- Có thể dùng NATURAL kết hợp với các loại JOIN khác như INNER, LEFT, RIGHT, FULL
+
+SELECT *
+FROM customer_orders
+NATURAL JOIN customers;
+
 ```
-3. Aliasing
-- Aliasing (đặt bí danh) là việc gán một tên tạm thời cho một bảng hoặc một cột trong một truy vấn. Tên tạm thời này chỉ tồn tại trong suốt quá trình thực thi truy vấn và không làm thay đổi tên thực tế của bảng hoặc cột trong cơ sở dữ liệu.
-- Aliasing giúp làm cho kết quả truy vấn dễ đọc hơn, đặc biệt khi làm việc với các phép toán phức tạp hoặc khi cần sử dụng các tên cột dài hoặc khó hiểu.
 
-- Aliasing với cột
+### Nâng cao hơn với JOIN
+- **JOIN nhiều bảng:** Lấy danh sách đơn hàng, tên khách hàng và tên sản phẩm:
 ```sql
--- Đặt bí danh cho cột, dùng AS hoặc không cần AS
-SELECT 
-    product_name AS name,
-    sale_price AS price
-FROM products;
-
--- Hoặc không dùng AS (vẫn hợp lệ)
-SELECT 
-    product_name name,
-    sale_price price
-FROM products;
+SELECT co.order_id, c.first_name || ' ' || c.last_name AS customer_name, p.product_name, co.order_total
+FROM customer_orders co
+JOIN customers c ON co.customer_id = c.customer_id
+JOIN products p ON co.product_id = p.product_id;
 ```
 
-- Aliasing với bảng
+- **JOIN với điều kiện lọc:** Lấy các đơn hàng đã giao thành công (status = 3) kèm tên shipper
 ```sql
-SELECT 
-    c.first_name, 
-    c.last_name, 
-    o.order_total
+SELECT oi.order_id, p.product_name, s.name AS shipper_name, oi.quantity
+FROM ordered_items oi
+JOIN products p ON oi.product_id = p.product_id
+JOIN suppliers s ON oi.shipper_id = s.supplier_id
+WHERE oi.status = 3;
+```
+- **Sử dụng USING keyword**:
+```sql
+-- Lấy tất cả đơn hàng và tên sản phẩm
+SELECT oi.order_id, oi.product_id, p.product_name, oi.quantity
+FROM ordered_items oi
+JOIN products p USING(product_id);
+```
+
+### Lưu ý khi sử dụng JOIN
+- **Chọn loại JOIN phù hợp:** Tùy vào yêu cầu báo cáo mà chọn INNER, LEFT, RIGHT hay FULL JOIN.
+- **Sử dụng alias:** Đặt tên ngắn gọn cho bảng để dễ đọc và viết câu truy vấn.
+- **Kiểm tra hiệu suất:** JOIN nhiều bảng có thể làm chậm truy vấn, cần kiểm tra và tối ưu hóa nếu cần.
+- **Sử dụng ON và USING:** Chọn cách kết nối phù hợp giữa các bảng, ON cho phép điều kiện phức tạp hơn, trong khi USING đơn giản hơn khi cột có cùng tên.
+- **Tránh CROSS JOIN không cần thiết:** CROSS JOIN tạo ra tất cả tổ hợp có thể, có thể dẫn đến kết quả rất lớn và không mong muốn.
+- **Sử dụng GROUP BY với JOIN:** Khi cần tổng hợp dữ liệu sau khi JOIN, có thể kết hợp GROUP BY để nhóm kết quả theo các cột mong muốn.
+```sql
+-- Số đơn hàng của từng khách hàng, sắp xếp theo số đơn giảm dần
+SELECT
+  c.first_name || ' ' || c.last_name AS customer_name,
+  COUNT(co.order_id) AS order_count
+FROM customer_orders co
+JOIN customers c ON co.customer_id = c.customer_id
+GROUP BY customer_name
+ORDER BY order_count DESC;
+
+-- Tổng doanh thu theo từng thành phố, sắp xếp theo doanh thu giảm dần
+SELECT
+  c.city,
+  SUM(co.order_total) AS total_sales
+FROM customer_orders co
+JOIN customers c ON co.customer_id = c.customer_id
+GROUP BY c.city
+ORDER BY total_sales DESC;
+```
+
+- **Kiểm tra NULL:** Khi sử dụng LEFT JOIN hoặc RIGHT JOIN, cần chú ý đến các giá trị NULL trong kết quả, vì chúng có thể ảnh hưởng đến các phép toán tổng hợp hoặc điều kiện lọc.
+- **Sử dụng DISTINCT khi cần:** Nếu kết quả JOIN có thể tạo ra các dòng trùng lặp, có thể sử dụng DISTINCT để loại bỏ chúng.
+
+## UNION
+- UNION dùng để kết hợp kết quả của hai hoặc nhiều truy vấn SELECT thành một tập kết quả duy nhất, loại bỏ các dòng trùng lặp.
+- UNION ALL cũng kết hợp kết quả nhiều truy vấn SELECT, nhưng giữ lại tất cả các dòng, bao gồm cả dòng trùng lặp.
+- Cả hai đều yêu cầu các truy vấn SELECT phải có cùng số lượng cột và kiểu dữ liệu tương thích.
+
+```sql
+SELECT column1, column2 FROM table1
+UNION [ALL]
+SELECT column1, column2 FROM table2;
+```
+
+### Ví dụ sử dụng UNION
+```sql
+-- Lấy danh sách những có lượng tip cao và số lượng khách hàng chi tiêu nhiều
+SELECT first_name, last_name, 'good tipper' AS type
 FROM customers c
-JOIN customer_orders o ON c.customer_id = o.customer_id;
+JOIN customer_orders co ON c.customer_id = co.customer_id
+WHERE tip::FLOAT > 3
+
+UNION
+
+SELECT first_name, last_name, 'high spender' AS type
+FROM customers
+WHERE total_money_spent > 1000;
 ```
 
-## DATA TYPES TRONG POSTGRESQL
-1. Numeric functions
-```sql
--- Lấy giá trị tuyệt đối của sự chênh lệch giữa số lượng tồn kho và 100
-SELECT product_id, product_name, units_in_stock, ABS(units_in_stock - 100) AS abs_difference
-FROM products;
-
--- Làm tròn giá bán sản phẩm đến 2 chữ số thập phân
-SELECT product_id, product_name, sale_price, ROUND(sale_price, 2) AS rounded_price
-FROM products;
-
--- Làm tròn lên giá bán sản phẩm
-SELECT product_id, product_name, sale_price, CEIL(sale_price) AS ceil_price
-FROM products;
-
--- Làm tròn xuống giá bán sản phẩm
-SELECT product_id, product_name, sale_price, FLOOR(sale_price) AS floor_price
-FROM products
-
--- Tính bình phương số lượng tồn kho
-SELECT product_id, product_name, units_in_stock, POWER(units_in_stock, 2) AS stock_squared
-FROM products;
-
--- Tính căn bậc hai của số lượng tồn kho
-SELECT product_id, product_name, units_in_stock, SQRT(units_in_stock) AS stock_sqrt
-FROM products;
-
--- Cắt bớt phần thập phân của giá bán sản phẩm (không làm tròn)
-SELECT product_id, product_name, sale_price, TRUNC(sale_price) AS truncated_price
-FROM products;
-```
-
-2. String functions
-```sql
--- Lấy độ dài tên sản phẩm
-SELECT product_id, product_name, LENGTH(product_name) AS name_length
-FROM products;
-
--- Chuyển tên sản phẩm sang chữ hoa
-SELECT product_id, UPPER(product_name) AS upper_name
-FROM products;
-
--- Chuyển tên khách hàng sang chữ thường
-SELECT customer_id, LOWER(first_name) AS lower_first_name
-FROM customers;
-
--- Nối họ và tên khách hàng thành một chuỗi đầy đủ
-SELECT customer_id, CONCAT(first_name, ' ', last_name) AS full_name
-FROM customers;
-
--- Hoặc
-SELECT customer_id, first_name || ' ' || last_name) AS full_name
-FROM customers;
-
--- Lấy 5 ký tự đầu tiên của tên sản phẩm
-SELECT product_id, SUBSTRING(product_name FROM 1 FOR 5) AS short_name
-FROM products;
-
--- Loại bỏ khoảng trắng ở đầu và cuối tên sản phẩm sử dụng TRIM hoặc LTRIM và RTRIM
-SELECT product_id, TRIM(product_name) AS trimmed_name
-FROM products;
-
--- Thay thế từ 'Cake' bằng 'Bread' trong tên sản phẩm
-SELECT product_id, REPLACE(product_name, 'Cake', 'Bread') AS new_name
-FROM products;
-
--- Tìm vị trí xuất hiện đầu tiên của từ 'Cake' trong tên sản phẩm
-SELECT product_id, POSITION('Cake' IN product_name) AS cake_pos
-FROM products;
-
--- Lấy 3 ký tự bên trái của tên sản phẩm
-SELECT product_id, LEFT(product_name, 3) AS left3
-FROM products;
-
--- Lấy 4 ký tự bên phải của tên sản phẩm
-SELECT product_id, RIGHT(product_name, 4) AS right4
-FROM products;
-```
-
-3. Date and time functions
-```sql
--- Lấy thời gian hiện tại của hệ thống
-SELECT NOW() AS current_datetime;
-
--- Lấy ngày hiện tại
-SELECT CURRENT_DATE AS today;
-
--- Lấy giờ hiện tại
-SELECT CURRENT_TIME AS current_time;
-
--- Tính số năm/tháng/ngày từ ngày sinh khách hàng đến hiện tại
-SELECT customer_id, first_name, birth_date, AGE(birth_date) AS age
-FROM customers;
-
--- Lấy năm đặt hàng từ cột order_date
-SELECT order_id, order_date, EXTRACT(YEAR FROM order_date) AS order_year
-FROM customer_orders;
-
--- Lấy tháng từ ngày sinh khách hàng
-SELECT customer_id, birth_date, EXTRACT(MONTH FROM birth_date) AS birth_month
-FROM customers;
-
--- Lấy ngày trong tháng từ ngày đặt hàng
-SELECT order_id, DATE_PART('day', order_date) AS day_of_month
-FROM customer_orders;
-
--- Hiển thị ngày đặt hàng theo định dạng DD/MM/YYYY
-SELECT order_id, TO_CHAR(order_date, 'DD/MM/YYYY') AS formatted_date
-FROM customer_orders;
-
--- Tính ngày giao hàng dự kiến sau 5 ngày kể từ ngày đặt hàng
-SELECT order_id, order_date, order_date + INTERVAL '5 days' AS expected_delivery
-FROM customer_orders;
-
--- Lấy ngày đầu tiên của tháng cho mỗi đơn hàng
--- date_trunc trong PostgreSQL dùng để cắt ngắn (truncate) một giá trị timestamp hoặc interval đến một đơn vị thời gian cụ thể.
-SELECT order_id, order_date, DATE_TRUNC('month', order_date) AS month_start
-FROM customer_orders;
-```
-
-## LỆNH ĐIỀU KIỆN VÀ CHUYỂN ĐỔI
-
-### Chuyển đổi kiểu dữ liệu
-
-Chuyển đổi kiểu dữ liệu trong PostgreSQL có thể được thực hiện bằng cách sử dụng các hàm chuyển đổi hoặc cú pháp CAST. Dưới đây là một số ví dụ về cách chuyển đổi kiểu dữ liệu trong PostgreSQL:
-```sql
-SELECT CAST(sale_price AS INTEGER) AS sale_price_int FROM products;
-
-SELECT sale_price::INTEGER AS sale_price_int FROM products;
-
-SELECT CAST('2024-06-15' AS DATE) AS converted_date;
-SELECT '2024-06-15'::DATE AS converted_date;
-
-SELECT '{10,20,30}'::INT[] AS int_array;
-```
-
-### CASE WHEN
-- Câu lệnh `CASE` trong SQL được sử dụng để thực hiện các phép so sánh và trả về giá trị khác nhau dựa trên điều kiện. Nó tương tự như cấu trúc `if-else` trong lập trình.
-```sql
--- Phân loại sản phẩm theo giá:
-SELECT
-  product_name,
-  sale_price,
-  CASE
-    WHEN sale_price < 2 THEN 'Rẻ'
-    WHEN sale_price BETWEEN 2 AND 10 THEN 'Trung bình'
-    ELSE 'Đắt'
-  END AS price_category
-FROM products;
-
--- Gán nhãn trạng thái đơn hàng:
-SELECT
-  order_id,
-  status,
-  CASE status
-    WHEN 1 THEN 'Processed'
-    WHEN 2 THEN 'Shipped'
-    WHEN 3 THEN 'Delivered'
-    ELSE 'Unknown'
-  END AS status_name
-FROM ordered_items;
-
--- CASE trong tính tổng
-
-SELECT
-  SUM(CASE WHEN sale_price < 2 THEN 1 ELSE 0 END) AS cheap_products,
-  SUM(CASE WHEN sale_price BETWEEN 2 AND 10 THEN 1 ELSE 0 END) AS medium_products,
-  SUM(CASE WHEN sale_price > 10 THEN 1 ELSE 0 END) AS expensive_products
-FROM products;
-
--- CASE lồng nhau
-
-SELECT
-  product_name,
-  sale_price,
-  CASE
-    WHEN sale_price < 2 THEN 'Rẻ'
-    WHEN sale_price BETWEEN 2 AND 10 THEN
-      CASE
-        WHEN sale_price < 5 THEN 'Trung bình thấp'
-        ELSE 'Trung bình cao'
-      END
-    ELSE 'Đắt'
-  END AS price_category
-FROM products;
-```
+## Bài tập
+- Câu 1: Liệt kê tên sản phẩm và tổng số lượng đã bán của từng sản phẩm, sắp xếp giảm dần theo số lượng bán.
+- Câu 2: Liệt kê tên khách hàng và số đơn hàng của họ nếu họ đã mua nhiều hơn 1 đơn.
+- Câu 3: Liệt kê tên nhà cung cấp và tổng doanh thu từ các đơn hàng đã được giao thành công (status = 3).
