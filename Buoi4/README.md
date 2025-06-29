@@ -144,8 +144,36 @@ ORDER BY t.total_sold DESC;
 - Dễ đọc và bảo trì: CTE giúp chia nhỏ truy vấn dài thành các phần dễ hiểu hơn, thuận tiện cho việc kiểm tra và chỉnh sửa; Temp Table giống như một bảng thật, cần tạo và xóa thủ công nếu không dùng nữa
 
 ## Bài tập
+- Tìm thành phố có tổng tiền khách hàng chi tiêu cao nhất
+```sql
+WITH city_spending AS (
+  SELECT city, SUM(total_money_spent) AS total_spent
+  FROM customers
+  GROUP BY city
+)
+SELECT city, total_spent
+FROM city_spending
+WHERE total_spent = (SELECT MAX(total_spent) FROM city_spending);
+```
 
-
+- Liệt kê nhân viên có lương cao nhất trong từng phòng ban
+- Dùng CTE để xếp hạng lương nhân viên trong từng phòng ban (bảng employees). Liệt kê tên, phòng ban, chức vụ và lương của những người có lương cao nhất mỗi phòng ban.
+```sql
+WITH ranked_employees AS (
+  SELECT
+    employee_id,
+    first_name,
+    last_name,
+    department,
+    title,
+    salary,
+    RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS salary_rank
+  FROM employees
+)
+SELECT first_name, last_name, department, title, salary
+FROM ranked_employees
+WHERE salary_rank = 1;
+```
 
 
 
