@@ -12,7 +12,7 @@ Cài đặt PostgreSQL trên máy tính của bạn.
 ![image](../static/images/bakery-db.png)
 - Mở PGAdmin, trong giao diện chính, tạo một cơ sở dữ liệu mới với tên `bakery`.
 - Chọn cơ sở dữ liệu `bakery` vừa tạo, sau đó mở tab "Query Tool".
-- Sao chép và dán đoạn mã SQL của file `bakery-db.sql` vào cửa sổ truy vấn. Link file: [bakery-db.sql](./bakery-db.sql)
+- Sao chép và dán đoạn mã SQL của file `bakery-db.sql` vào cửa sổ truy vấn. Link file: [bakery-db.sql]([./bakery-db.sql](https://drive.google.com/file/d/1tRD8o8ugWq6KmqnCDLphhC94ITB5-_3e/view?usp=sharing))
 
 ## SCRIPT THỰC HÀNH
 1. SELECT ... FROM cơ bản:
